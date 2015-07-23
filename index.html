@@ -162,9 +162,6 @@
         .attr("x", -overlaySize)
         .attr("y", -overlaySize);
 
-
-    var all = []; // store all labels for fast search.
-
     var node, link, text, graphSource;
 
     var nodeColors = {
@@ -267,9 +264,6 @@
             .text(function(d) { return d.name.substring(0, 20);});
 
         catchLocationHash(true);
-        all = d3.selectAll('.node')[0].map(function(x) {
-            return x.textContent;
-        });
     }
 
     function selectNode(d, focus) {
@@ -350,17 +344,21 @@
             return;
         }
 
-        var matches = fuzzy.filter(this.value, all).sort(function (a, b) {
-            a.ratio = a.score / a.string.length;
-            b.ratio = b.score / b.string.length;
-            if (a.ratio > b.ratio) {
-                return -1;
-            }
-            if (a.ratio < b.ratio) {
-                return 1;
-            }
-            return 0;
-        });
+        var matches = fuzzy
+            .filter(this.value,
+                    d3.selectAll('.node')[0],
+                    { extract: function (x) { return x.textContent; } })
+            .sort(function (a, b) {
+                a.ratio = a.score / a.string.length;
+                b.ratio = b.score / b.string.length;
+                if (a.ratio > b.ratio) {
+                    return -1;
+                }
+                if (a.ratio < b.ratio) {
+                    return 1;
+                }
+                return 0;
+            });
 
         if (matches.length > 0) {
             d3.selectAll(".node").each(function (d) {
