@@ -3,6 +3,7 @@
 <head>
     <title>Programming Language Network</title>
     <script src="assets/lib/d3.v3.min.js"></script>
+    <script src="assets/lib/fuzzy.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -97,6 +98,19 @@
             background: purple;
             margin-left: -25px;
         }
+
+        .search-box {
+          padding: 0 20px 0 20px;
+        }
+        .search {
+          width: 100%;
+          background-color: transparent;
+          border-style: solid;
+          border-width: 0px 0px 1px 0px;
+          border-color: white;
+          color: #b3b3b3;
+          font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +126,10 @@
     <ul class="nodes-info"></ul>
     <h3>Edges</h3>
     <ul class="edges-info"></ul>
+    <h3>Search</h3>
+    <div class="search-box">
+      <input type="search" class="search">
+    </div>
 </div>
 <script type="text/javascript">
     var width = window.innerWidth,
@@ -322,6 +340,36 @@
 
     window.addEventListener("hashchange", catchLocationHash.bind(this, false), false);
 
+    d3.select(".search").on("keyup", function () {
+        if (!this.value) {
+            blurNodes();
+            return;
+        }
+
+        var matches = fuzzy
+            .filter(this.value,
+                    d3.selectAll('.node')[0],
+                    { extract: function (x) { return x.textContent; } })
+            .sort(function (a, b) {
+                a.ratio = a.score / a.string.length;
+                b.ratio = b.score / b.string.length;
+                if (a.ratio > b.ratio) {
+                    return -1;
+                }
+                if (a.ratio < b.ratio) {
+                    return 1;
+                }
+                return 0;
+            });
+
+        if (matches.length > 0) {
+            d3.selectAll(".node").each(function (d) {
+                if (d.name == matches[0].string) {
+                    selectNode.call(this, d, true);
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>
